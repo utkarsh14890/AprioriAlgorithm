@@ -1,0 +1,183 @@
+/**
+ * JavaCC template file created by SF JavaCC plugin 1.5.17+ wizard for JavaCC 1.5.0+
+ */
+options
+{
+  JDK_VERSION = "1.5";
+  static = true;
+}
+
+PARSER_BEGIN(Parser)
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+public class Parser
+{
+  public static void main(String args []) throws ParseException
+  {
+    while (true)
+    {
+      System.out.println("Reading from standard input...");
+      //System.out.print("Enter an expression like \"1+(2+3)*4;\" :");
+//      try
+//      {
+//        switch (EG1.one_line())
+//        {
+//          case 0 : 
+//          System.out.println("OK.");
+//          break;
+//          case 1 : 
+//          System.out.println("Goodbye.");
+//          break;
+//          default : 
+//          break;
+//        }
+//      }
+//      catch (Exception e)
+//      {
+//        System.out.println("NOK.");
+//        System.out.println(e.getMessage());
+//        EG1.ReInit(System.in);
+//      }
+//      catch (Error e)
+//      {
+//        System.out.println("Oops.");
+//        System.out.println(e.getMessage());
+//        break;
+//      }
+    }
+  }
+}
+
+PARSER_END(Parser)
+
+ArrayList<Template> Program():
+{
+  ArrayList<Template> list = new ArrayList<Template>();
+  Template1 ob1;
+  Template2 ob2;
+  Template ob;
+}{
+  ((    ob = Template()  {    list.add(ob);  }
+  )
+  ((< AND >  {    Apriori.flag.add(0);  }| < OR >  {    Apriori.flag.add(1);  })  (    ob = Template()    {      list.add(ob);    }  ))*)
+  < NEWLINE >  {    return list;  }}
+
+Template Template():
+{
+  Template1 ob1;
+  Template2 ob2;}{   (ob1 = Template1()
+  {
+    return ob1;
+  }
+  |ob2 = Template2()
+  {
+    return ob2;
+  })}
+Template1 Template1():
+{
+  int primary;
+  int secondary;
+  ArrayList<String> itemSet = new ArrayList<String>();
+  Template1 ob = new Template1();
+}
+{  (  primary = Primary()
+  {
+    ob.setPrimaryFlag(primary);
+  }
+  < HAS >
+  secondary = Secondary()
+  {
+    ob.setSecondaryFlag(secondary);
+  }
+  < OF >
+  itemSet = Item()  {    ob.itemSet = itemSet;  }  )
+  {
+    ob.setTemplateFlag(0);
+    return ob;
+  }  
+}
+
+Template2 Template2():
+{
+  int primary;
+  Token t;
+  int num;
+  Template2 ob = new Template2();}{
+  (  < SIZEOF >< LPAREN >  primary = Primary()  {    ob.setPrimaryFlag(primary);  }
+  < RPAREN >  < GTE >
+  t = < NUMBER >  {    num = Integer.parseInt(t.image);
+    ob.setNum(num);  }
+  )  {    ob.setTemplateFlag(1);
+    return ob;  }}
+  
+ArrayList<String> Item():
+{
+  Token t;
+  ArrayList<String> itemSet = new ArrayList<String>();
+}
+{
+  (t = < ITEM >
+  {
+    itemSet.add(t.image.toString());
+  }
+  (< COMMA >t = < ITEM >
+  {
+    itemSet.add(t.image.toString());
+  })
+  *)+
+  {
+    return itemSet;
+  }
+}
+  
+
+int Primary():
+{
+  Token t;
+}
+{
+  (    t = < RULE >    {      return 0;    }    | t = < BODY >    {      return 1;    }    | t = < HEAD >    {      return 2;    }
+  )
+}
+
+int Secondary():
+{
+  Token t;
+}
+{
+  (    t = < ANY >    {      return 0;    }    | t = < NUMBER >    {      return 1;    }    | t = < NONE >    {
+      return 2;    }  
+  )
+}
+
+  
+SKIP :
+{
+  " "
+| "\r"
+| "\t"
+}
+
+TOKEN [IGNORE_CASE]:
+{
+  < RULE : "RULE" >
+| < BODY : "BODY" >
+| < HEAD : "HEAD" >
+| < ANY : "ANY" >
+| < NONE : "NONE" >
+| < SIZEOF : "SIZEOF" >
+| < HAS : "HAS" >
+| < OF : "OF" >
+| < AND : "AND" >
+| < OR : "OR" >
+| < NUMBER : (["0"-"9"])+ >
+| < ITEM : (["A"-"Z","0"-"9"])+ >
+| < GTE : ">=" >
+| < COMMA : "," >
+| < NEWLINE : "\n" >
+| < LPAREN : "(" >
+| < RPAREN : ")" >
+}
